@@ -78,10 +78,10 @@ float3 safe_invert(const float3 v) {
 }
 
 #define near_child(rd, n)   \
-    (rd)[(n)->space_axis] < 0 ? (n)->right_child : (n)->left_child
+    (rd)[(n)->flags & SPACE_AXIS_BITS] < 0 ? (n)->right_child : (n)->left_child
 
 #define far_child(rd, n)    \
-    (rd)[(n)->space_axis] < 0 ? (n)->left_child : (n)->right_child
+    (rd)[(n)->flags & SPACE_AXIS_BITS] < 0 ? (n)->left_child : (n)->right_child
 
 void Traverse_MicroTree_Stackless(const float3 r_o, const float3 r_d, const float3 inv_d, uint obj_index,
                                   __global const bvh_node_t *nodes, uint node_index,
@@ -191,7 +191,7 @@ void Traverse_MicroTreeImg_WithLocalStack(const float3 r_o, const float3 r_d, co
         /*
             struct bvh_node_t {
                 xxx4 node_data1;  // { prim_index, prim_count, left_child, right_child }
-                xxx4 node_data2;  // { parent,     space_axis, bbox[0][0], bbox[0][1]  }
+                xxx4 node_data2;  // { parent,     flags,      bbox[0][0], bbox[0][1]  }
                 xxx4 node_data3;  // { bbox[0][2], bbox[1][0], bbox[1][1], bbox[1][2]  }
             };
         */
@@ -204,7 +204,7 @@ void Traverse_MicroTreeImg_WithLocalStack(const float3 r_o, const float3 r_d, co
         *node_data1 = read_imageui(nodes, cur * 3 + 0);
 
         if (!(*node_data1).y) {
-            uint space_axis = as_uint((*node_data2).y);
+            uint space_axis = as_uint((*node_data2).y) & SPACE_AXIS_BITS;
             stack[stack_size++] = rd[space_axis] < 0 ? (*node_data1).z : (*node_data1).w;
             stack[stack_size++] = rd[space_axis] < 0 ? (*node_data1).w : (*node_data1).z;
         } else {
@@ -228,7 +228,7 @@ void Traverse_MicroTreeImg_WithPrivateStack(const float3 r_o, const float3 r_d, 
         /*
             struct bvh_node_t {
                 xxx4 node_data1;  // { prim_index, prim_count, left_child, right_child }
-                xxx4 node_data2;  // { parent,     space_axis, bbox[0][0], bbox[0][1]  }
+                xxx4 node_data2;  // { parent,     flags,      bbox[0][0], bbox[0][1]  }
                 xxx4 node_data3;  // { bbox[0][2], bbox[1][0], bbox[1][1], bbox[1][2]  }
             };
         */
@@ -241,7 +241,7 @@ void Traverse_MicroTreeImg_WithPrivateStack(const float3 r_o, const float3 r_d, 
         *node_data1 = read_imageui(nodes, cur * 3 + 0);
 
         if (!(*node_data1).y) {
-            uint space_axis = as_uint((*node_data2).y);
+            uint space_axis = as_uint((*node_data2).y) & SPACE_AXIS_BITS;
             stack[stack_size++] = rd[space_axis] < 0 ? (*node_data1).z : (*node_data1).w;
             stack[stack_size++] = rd[space_axis] < 0 ? (*node_data1).w : (*node_data1).z;
         } else {
@@ -510,7 +510,7 @@ void Traverse_MacroTreeImg_WithLocalStack(const float3 orig_r_o, const float3 or
         /*
             struct bvh_node_t {
                 xxx4 node_data1;  // { prim_index, prim_count, left_child, right_child }
-                xxx4 node_data2;  // { parent,     space_axis, bbox[0][0], bbox[0][1]  }
+                xxx4 node_data2;  // { parent,     flags,      bbox[0][0], bbox[0][1]  }
                 xxx4 node_data3;  // { bbox[0][2], bbox[1][0], bbox[1][1], bbox[1][2]  }
             };
         */
@@ -523,7 +523,7 @@ void Traverse_MacroTreeImg_WithLocalStack(const float3 orig_r_o, const float3 or
         uint4 node_data1 = read_imageui(nodes, cur * 3 + 0);
 
         if (!node_data1.y) {
-            int space_axis = as_int(node_data2.y);
+            int space_axis = as_int(node_data2.y) & SPACE_AXIS_BITS;
             stack[stack_size++] = orig_rd[space_axis] < 0 ? node_data1.z : node_data1.w;
             stack[stack_size++] = orig_rd[space_axis] < 0 ? node_data1.w : node_data1.z;
         } else {
@@ -567,7 +567,7 @@ void Traverse_MacroTreeImg_WithPrivateStack(const float3 orig_r_o, const float3 
         /*
             struct bvh_node_t {
                 xxx4 node_data1;  // { prim_index, prim_count, left_child, right_child }
-                xxx4 node_data2;  // { parent,     space_axis, bbox[0][0], bbox[0][1]  }
+                xxx4 node_data2;  // { parent,     flags,      bbox[0][0], bbox[0][1]  }
                 xxx4 node_data3;  // { bbox[0][2], bbox[1][0], bbox[1][1], bbox[1][2]  }
             };
         */
@@ -580,7 +580,7 @@ void Traverse_MacroTreeImg_WithPrivateStack(const float3 orig_r_o, const float3 
         uint4 node_data1 = read_imageui(nodes, cur * 3 + 0);
 
         if (!node_data1.y) {
-            int space_axis = as_int(node_data2.y);
+            int space_axis = as_int(node_data2.y) & SPACE_AXIS_BITS;
             stack[stack_size++] = orig_rd[space_axis] < 0 ? node_data1.z : node_data1.w;
             stack[stack_size++] = orig_rd[space_axis] < 0 ? node_data1.w : node_data1.z;
         } else {

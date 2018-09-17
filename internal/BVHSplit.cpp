@@ -374,8 +374,6 @@ Ray::split_data_t Ray::SplitPrimitives_SAH(const prim_t *primitives, const std::
                 res_right_bounds.min[div_axis], res_right_bounds.max[div_axis]);
 
             return{ std::move(left_indices), std::move(right_indices), { res_left_bounds.min, res_left_bounds.max }, { res_right_bounds.min, res_right_bounds.max } };
-        } else {
-            volatile int i = 0;
         }
     }
 

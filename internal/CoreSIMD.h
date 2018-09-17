@@ -105,7 +105,7 @@ bool Traverse_MacroTree_WithStack(const ray_packet_t<S> &r, const simd_ivec<S> &
                                   const tri_accel_t *tris, const uint32_t *tri_indices, hit_data_t<S> &inter);
 // traditional bvh traversal with stack for inner nodes
 template <int S>
-bool Traverse_MicroTree_WithStack(const ray_packet_t<S> &r, const simd_ivec<S> &ray_mask, const bvh_node_t *nodes, uint32_t node_index,
+__declspec(noinline) bool Traverse_MicroTree_WithStack(const ray_packet_t<S> &r, const simd_ivec<S> &ray_mask, const bvh_node_t *nodes, uint32_t node_index,
                                   const tri_accel_t *tris, const uint32_t *tri_indices, int obj_index, hit_data_t<S> &inter);
 
 // Transform
@@ -258,7 +258,7 @@ force_inline simd_ivec<S> bbox_test(const simd_fvec<S> p[3], const bvh_node_t &n
 
 template <int S>
 force_inline uint32_t near_child(const ray_packet_t<S> &r, const simd_ivec<S> &ray_mask, const bvh_node_t &node) {
-    const auto dir_neg_mask = r.d[node.space_axis] < 0.0f;
+    const auto dir_neg_mask = r.d[node.flags & SPACE_AXIS_BITS] < 0.0f;
     const auto mask = reinterpret_cast<const simd_ivec<S>&>(dir_neg_mask);
     if (mask.all_zeros(ray_mask)) {
         return node.left_child;
@@ -289,7 +289,7 @@ struct TraversalState {
     int index = 0, num = 1;
 
     force_inline void select_near_child(const ray_packet_t<S> &r, const bvh_node_t &node) {
-        const auto dir_neg_mask = r.d[node.space_axis] < 0.0f;
+        const auto dir_neg_mask = r.d[node.flags & SPACE_AXIS_BITS] < 0.0f;
         const auto mask1 = reinterpret_cast<const simd_ivec<S>&>(dir_neg_mask) & queue[index].mask;
         if (mask1.all_zeros()) {
             queue[index].cur = node.left_child;
@@ -318,7 +318,7 @@ struct TraversalStateStack {
     } queue[S];
 
     force_inline void push_children(const ray_packet_t<S> &r, const bvh_node_t &node) {
-        const auto dir_neg_mask = r.d[node.space_axis] < 0.0f;
+        const auto dir_neg_mask = r.d[node.flags & SPACE_AXIS_BITS] < 0.0f;
         const auto mask1 = reinterpret_cast<const simd_ivec<S>&>(dir_neg_mask) & queue[index].mask;
         if (mask1.all_zeros()) {
             queue[index].stack[queue[index].stack_size++] = node.right_child;
@@ -1245,6 +1245,7 @@ bool Ray::NS::Traverse_MicroTree_WithStack(const ray_packet_t<S> &r, const simd_
             uint32_t cur = stack[--stack_size];
 
             auto mask1 = bbox_test(r.o, inv_d, inter.t, nodes[cur]) & st.queue[st.index].mask;
+
             if (mask1.all_zeros()) {
                 continue;
             }

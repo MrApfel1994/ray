@@ -246,7 +246,22 @@ uint32_t Ray::PreprocessPrims(const prim_t *prims, size_t prims_count, const flo
             Ref::simd_fvec3 bbox_min = split_data.left_bounds[0],
                             bbox_max = split_data.left_bounds[1];
 
-            out_nodes.push_back({ (uint32_t)out_indices.size(), (uint32_t)split_data.left_indices.size(), 0, 0, parent_index, 0,
+            uint32_t slab_bits = 0;
+
+            if (parent_index != 0xffffffff) {
+                if (bbox_min[0] != out_nodes[parent_index].bbox[0][0]) slab_bits |= SLAB_BIT_NEG_X;
+                if (bbox_max[0] != out_nodes[parent_index].bbox[1][0]) slab_bits |= SLAB_BIT_POS_X;
+                if (bbox_min[1] != out_nodes[parent_index].bbox[0][1]) slab_bits |= SLAB_BIT_NEG_Y;
+                if (bbox_max[1] != out_nodes[parent_index].bbox[1][1]) slab_bits |= SLAB_BIT_POS_Y;
+                if (bbox_min[2] != out_nodes[parent_index].bbox[0][2]) slab_bits |= SLAB_BIT_NEG_Z;
+                if (bbox_max[2] != out_nodes[parent_index].bbox[1][2]) slab_bits |= SLAB_BIT_POS_Z;
+            } else {
+                slab_bits = (SLAB_BIT_POS_X | SLAB_BIT_NEG_X |
+                    SLAB_BIT_POS_Y | SLAB_BIT_NEG_Y |
+                    SLAB_BIT_POS_Z | SLAB_BIT_NEG_Z);
+            }
+
+            out_nodes.push_back({ (uint32_t)out_indices.size(), (uint32_t)split_data.left_indices.size(), 0, 0, parent_index, slab_bits,
                 {   { bbox_min[0], bbox_min[1], bbox_min[2] },
                     { bbox_max[0], bbox_max[1], bbox_max[2] }
                 }
@@ -272,13 +287,27 @@ uint32_t Ray::PreprocessPrims(const prim_t *prims, size_t prims_count, const flo
             Ref::simd_fvec3 bbox_min = min(split_data.left_bounds[0], split_data.right_bounds[0]),
                             bbox_max = max(split_data.left_bounds[1], split_data.right_bounds[1]);
 
-            out_nodes.push_back({ 0, 0, index + 1, index + 2, parent_index, space_axis,
+            uint32_t slab_bits = 0;
+
+            if (parent_index != 0xffffffff) {
+                if (bbox_min[0] != out_nodes[parent_index].bbox[0][0]) slab_bits |= SLAB_BIT_NEG_X;
+                if (bbox_max[0] != out_nodes[parent_index].bbox[1][0]) slab_bits |= SLAB_BIT_POS_X;
+                if (bbox_min[1] != out_nodes[parent_index].bbox[0][1]) slab_bits |= SLAB_BIT_NEG_Y;
+                if (bbox_max[1] != out_nodes[parent_index].bbox[1][1]) slab_bits |= SLAB_BIT_POS_Y;
+                if (bbox_min[2] != out_nodes[parent_index].bbox[0][2]) slab_bits |= SLAB_BIT_NEG_Z;
+                if (bbox_max[2] != out_nodes[parent_index].bbox[1][2]) slab_bits |= SLAB_BIT_POS_Z;
+            } else {
+                slab_bits = (SLAB_BIT_POS_X | SLAB_BIT_NEG_X |
+                    SLAB_BIT_POS_Y | SLAB_BIT_NEG_Y |
+                    SLAB_BIT_POS_Z | SLAB_BIT_NEG_Z);
+            }
+
+            out_nodes.push_back({ 0, 0, index + 1, index + 2, parent_index, (space_axis | slab_bits),
                 {   { bbox_min[0], bbox_min[1], bbox_min[2] },
                     { bbox_max[0], bbox_max[1], bbox_max[2] }
                 }
             });
 
-            // push_front
             prim_lists.emplace_front(std::move(split_data.left_indices), split_data.left_bounds[0], split_data.left_bounds[1]);
             prim_lists.emplace_front(std::move(split_data.right_indices), split_data.right_bounds[0], split_data.right_bounds[1]);
 

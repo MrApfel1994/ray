@@ -54,10 +54,22 @@ const float RAY_TERM_THRES = 0.01f;
 
 const float LIGHT_ATTEN_CUTOFF = 0.001f;
 
+const uint32_t SLAB_BITS = 0b11111100;
+const uint32_t SLAB_BIT_POS_X = 0b00000100,
+               SLAB_BIT_NEG_X = 0b00001000,
+               SLAB_BIT_POS_Y = 0b00010000,
+               SLAB_BIT_NEG_Y = 0b00100000,
+               SLAB_BIT_POS_Z = 0b01000000,
+               SLAB_BIT_NEG_Z = 0b10000000;
+const uint32_t SPACE_AXIS_BITS = 0b00000011;
+
 struct bvh_node_t {
     uint32_t prim_index, prim_count,
              left_child, right_child, parent,
-             space_axis; // axis with maximal child's centroids distance
+             flags;
+    // Flags contain:
+    // (flags & SLAB_BIT_*) - bounding box slab relation to parent, used for optimized intersection test
+    // (flags & SPACE_AXIS_BITS) - axis with maximal child's centroids distance, used to guess closest child of node
     float bbox[2][3];
 };
 static_assert(sizeof(bvh_node_t) == 48, "!");

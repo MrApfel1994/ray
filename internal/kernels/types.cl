@@ -34,7 +34,10 @@ typedef struct _hit_data_t {
 typedef struct _bvh_node_t {
     uint prim_index, prim_count,
          left_child, right_child, parent,
-         space_axis; // axis with maximum child's centroids distance
+         flags;
+    // Flags contain:
+    // (flags & SLAB_BIT_*) - bounding box slab relation to parent, used for optimized intersection test
+    // (flags & SPACE_AXIS_BITS) - axis with maximal child's centroids distance, used to guess closest child of node
     float bbox[2][3];
 } bvh_node_t;
 

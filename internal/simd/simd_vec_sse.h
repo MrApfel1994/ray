@@ -26,7 +26,6 @@ public:
     force_inline simd_vec(float f) {
         vec_ = _mm_set1_ps(f);
     }
-    template <typename... Tail>
     force_inline simd_vec(float f1, float f2, float f3, float f4) {
         vec_ = _mm_setr_ps(f1, f2, f3, f4);
     }

@@ -151,6 +151,13 @@ Ray::Ocl::Renderer::Renderer(int w, int h, int platform_index, int device_index)
         cl_src_defines += "#define NoBackground " + std::to_string(NoBackground) + "\n";
         cl_src_defines += "#define TRI_RAST_X " + std::to_string(tri_rast_x_) + "\n";
         cl_src_defines += "#define TRI_RAST_Y " + std::to_string(tri_rast_y_) + "\n";
+        cl_src_defines += "#define SLAB_BIT_POS_X " + std::to_string(SLAB_BIT_POS_X) + "\n";
+        cl_src_defines += "#define SLAB_BIT_NEG_X " + std::to_string(SLAB_BIT_NEG_X) + "\n";
+        cl_src_defines += "#define SLAB_BIT_POS_Y " + std::to_string(SLAB_BIT_POS_Y) + "\n";
+        cl_src_defines += "#define SLAB_BIT_NEG_Y " + std::to_string(SLAB_BIT_NEG_Y) + "\n";
+        cl_src_defines += "#define SLAB_BIT_POS_Z " + std::to_string(SLAB_BIT_POS_Z) + "\n";
+        cl_src_defines += "#define SLAB_BIT_NEG_Z " + std::to_string(SLAB_BIT_NEG_Z) + "\n";
+        cl_src_defines += "#define SPACE_AXIS_BITS " + std::to_string(SPACE_AXIS_BITS) + "\n";
 
         cl_int error = CL_SUCCESS;
         cl::Program::Sources srcs = {

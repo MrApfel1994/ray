@@ -42,11 +42,11 @@ force_inline void _IntersectTri(const ray_packet_t &r, const tri_accel_t &tri, u
 }
 
 force_inline uint32_t near_child(const ray_packet_t &r, const bvh_node_t &node) {
-    return r.d[node.space_axis] < 0 ? node.right_child : node.left_child;
+    return r.d[node.flags & SPACE_AXIS_BITS] < 0 ? node.right_child : node.left_child;
 }
 
 force_inline uint32_t far_child(const ray_packet_t &r, const bvh_node_t &node) {
-    return r.d[node.space_axis] < 0 ? node.left_child : node.right_child;
+    return r.d[node.flags & SPACE_AXIS_BITS] < 0 ? node.left_child : node.right_child;
 }
 
 force_inline uint32_t other_child(const bvh_node_t &node, uint32_t cur_child) {
